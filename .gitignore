@@ -1,0 +1,23 @@
+# Ambiente virtual Python
+bin/
+include/
+lib/
+lib64/
+pyvenv.cfg
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Segredos e configurações locais
+.env
+.env.*
+!.env.example
+
+# Sistema/editor
+.DS_Store
+.vscode/
+.idea/
