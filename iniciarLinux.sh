@@ -18,8 +18,8 @@ if [ ! -x ".venv/bin/python" ]; then
 	"$PYTHON" -m venv .venv
 fi
 
-printf '%s\n' "Instalando ou atualizando as dependencias..."
-.venv/bin/python -m pip install -r requirements.txt
+printf '%s\n' "Instalando ou atualizando as dependencias Panda3D..."
+.venv/bin/python -m pip install --pre --extra-index-url https://archive.panda3d.org/ -r requirements.txt
 
 printf '%s\n' "Iniciando o app  python main.py"
 exec .venv/bin/python main.py
