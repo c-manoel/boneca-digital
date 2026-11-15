@@ -30,9 +30,12 @@ setup(
             "plugins": [
                 "pandagles2",
                 "pandagles",
+                "p3openal_audio",
             ],
             "include_patterns": [
                 "assets/boneca_3d/*.glb",
+                "assets/ui/*.png",
+                "assets/audio/*.wav",
             ],
             "extra_prc_data": ANDROID_PRC,
         },

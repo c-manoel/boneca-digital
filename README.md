@@ -1,22 +1,33 @@
-# Boneca Digital Interativa — protótipo Panda3D
+# Boneca Digital Interativa — Panda3D
 
-Protótipo acadêmico, local e offline, para apoiar a comunicação entre criança e profissional. O aplicativo não realiza diagnóstico, não interpreta emoções ou sintomas e não substitui profissionais de saúde.
+Protótipo local e offline para apoiar a comunicação entre criança e profissional. Não interpreta emoções ou sintomas, não realiza diagnóstico e não substitui profissionais de saúde.
 
-## Arquitetura
+## Experiência
 
-A interface inteira é feita com Panda3D: a janela, os textos, os botões e a boneca 3D usam o mesmo motor gráfico. `core/app.py` controla as telas e a navegação; `main.py` inicia a aplicação; o modelo e suas animações estão em `assets/boneca_3d/grab3d-lowpoly-character.glb`. Os toques são recebidos pelo sistema de eventos do Panda3D. Na tela do corpo, um raio de colisão identifica uma região aproximada.
+**Início → sentimento → desconfortos físicos → intensidade → corpo → revisão → confirmação**
 
-As regiões são áreas de interação aproximadas, e não uma representação anatômica ou ferramenta de avaliação. A escolha apenas destaca a região indicada pela pessoa.
+A interface infantil usa instruções curtas, pictogramas, botões grandes, setas e alvos visuais. Ela não exige leitura extensa nem conhecimento de Libras; os rótulos curtos continuam disponíveis como apoio para a criança, a família e a enfermagem. Cor não é a única pista: a seleção também recebe um `X` ou um símbolo de confirmação.
 
-## Requisitos
+O layout ajusta escala e posição dos cartões e da navegação à proporção da janela. A boneca também muda de tamanho conforme a tela: fica maior na seleção do corpo e mais compacta nas telas com muitas opções; na intensidade, desloca-se levemente para abrir espaço aos cartões. Na revisão, os cartões ficam acima da boneca em retrato e em uma coluna lateral em paisagem. Na ajuda e na pausa, a ilustração/bolha fica na lateral e a boneca se desloca para o lado oposto. Os alvos de toque acompanham as transformações. Ao redimensionar ou girar o dispositivo, os controles são reconstruídos para permanecer dentro da área visível.
 
-- Python 3.10 ou superior para testar no computador; a build Android descrita pelo Panda3D usa Python 3.13 e wheels específicas para Android.
-- O build Android deve ser feito em Linux ou macOS com Java e Android SDK/NDK configurados.
-- O renderer Android configurado é `pandagles2`, com `pandagles` como alternativa. O Pygame não é usado nesta versão.
+- Sentimentos: feliz, bem, preocupado ou triste. Os cartões destacam as ilustrações e mostram a opção escolhida com X, visto e um movimento suave; os rótulos são auxiliares.
+- Desconfortos: dor, enjoo/náusea, coceira, tontura, cansaço/sono ou outro. A grade mantém marcas visíveis em cada sintoma escolhido e aceita vários ao mesmo tempo.
+- “Não sinto desconforto” e “Não responder” aparecem em uma faixa separada, com pictogramas e cores próprios; são opções exclusivas e levam direto à revisão, sem exigir intensidade ou região corporal.
+- Com desconfortos selecionados, a criança indica como sente por pictogramas de uma, duas ou três barras, com as palavras leve, moderada e forte como apoio. É autorrelato, não avaliação clínica.
+- Na tela do corpo, cápsulas e esferas acompanham os ossos do GLB; os alvos visuais seguem a pose da boneca, e E/D identificam os lados anatômicos. As seis regiões atuais permanecem sem subdividir o tronco; um novo toque desmarca a região selecionada.
+- A revisão separa sentimento, desconfortos e intensidade, aumenta os pictogramas e mostra vistos. Cada cartão abre sua tela para alterar aquela resposta; `CORRIGIR` permite rever as regiões corporais, e `CONFIRMAR` encerra a revisão.
+- A ajuda mostra uma criança chamando um adulto, com uma legenda curta como apoio.
+- A boneca acena ao iniciar, ao mudar a emoção escolhida e ao confirmar a revisão, retornando depois à animação idle. A seleção e a desmarcação recebem retorno visual; o pictograma de reação aparece ao lado da cabeça. Os movimentos de escala são breves, discretos e sem piscar.
+- O GLB não contém rig de expressões ou blend shapes. Não há animação facial: a emoção escolhida é comunicada pelo pictograma e pela reação corporal disponível, sem deformar a malha do rosto.
+- O ícone de bolha abre uma pausa opcional: a bolha fica parada ao entrar, e cada toque inicia um ciclo lento de crescer/encolher. Não há pontuação; a criança pode voltar a qualquer momento.
+- O som é opcional e começa desligado. Quando ativado, usa apenas um toque curto e baixo ao selecionar, desmarcar ou confirmar; a pausa é silenciosa.
+- As escolhas recebem pistas além da cor — pictogramas, vistos e/ou X — e cartões com áreas amplas de toque. As setas principais se adaptam à altura da janela; nas prévias 720×1280 e 1280×720, a altura estimada de seus alvos é de cerca de 62–65 px (pixels não equivalem necessariamente a dp físicos). A ergonomia ainda precisa ser avaliada em tablets com crianças e profissionais.
 
-## Testar no computador
+Os PNGs da interface estão em `assets/ui/`, e o toque de áudio em `assets/audio/soft_chime.wav`. Para substituir um pictograma, mantenha o nome do arquivo; para trocar ou acrescentar opções, ajuste os mapeamentos em `core/app.py`.
 
-Na pasta do projeto:
+## Executar no computador
+
+Requer Python 3.10 ou superior. Na pasta `boneca_digital`:
 
 ```bash
 python3 -m venv .venv
@@ -29,17 +40,11 @@ pip install --pre --extra-index-url https://archive.panda3d.org/ -r requirements
 python main.py
 ```
 
-A janela Panda3D abre com a tela inicial. Use mouse ou toque quando o dispositivo permitir. `Esc` fecha o protótipo.
+`Esc` fecha o protótipo. O teclado também pode ser usado: `1–4` escolhem sentimentos, `1–6` alternam desconfortos, `7` seleciona “Não sinto desconforto”, `8` seleciona “Prefiro não responder”, `1–3` escolhem intensidade e `Enter` avança quando há resposta válida. A seleção corporal é feita tocando/clicando na boneca.
 
-## Telas e teste manual
+## Preparar build Android
 
-O fluxo é: **Início → Apresentação → Como você está? → Corpo → Encerramento**. Teste os botões grandes, voltar/continuar, as cinco opções de humor e os cliques/toques na cabeça, tronco, braços e pernas. Na tela de corpo, a interface mostra a região aproximada escolhida. O app não infere causa nem gravidade.
-
-O modelo contém animações; quando a animação `idle` está disponível, ela inicia automaticamente. A seleção por colisores é independente da animação e deve ser conferida visualmente no modelo real.
-
-## Gerar pacote Android
-
-O `setup.py` configura `bdist_apps` do Panda3D para Android arm64. O fluxo Android requer Python 3.13, uma build host recente do Panda3D 1.11 e uma wheel Panda3D compilada para o alvo Android. Coloque a wheel `cp313` para `android_arm64` na pasta `android-wheels/`. As wheels específicas e o estado de suporte podem mudar; consulte as [instruções atuais da comunidade Panda3D para Android](https://discourse.panda3d.org/t/deployment-for-android/28226) antes de baixar os arquivos. Configure também Java e Android SDK/NDK no ambiente.
+O `setup.py` configura `bdist_apps` do Panda3D para Android arm64. A build requer Python 3.13, uma build host recente do Panda3D 1.11, uma wheel Panda3D compatível com Android arm64, além de Java e Android SDK/NDK. Coloque a wheel `cp313` em `android-wheels/` e consulte as [instruções atuais do Panda3D para Android](https://discourse.panda3d.org/t/deployment-for-android/28226) para obter versões compatíveis.
 
 ```bash
 python3.13 -m venv .venv-android
@@ -50,15 +55,15 @@ pip install "panda3d-gltf>=1.2.1,<2"
 python setup.py bdist_apps --requirements-path requirements-android.txt
 ```
 
-O comando deve gerar um Android App Bundle (`.aab`) dentro de `dist/`. Para instalar e testar em um aparelho, use as ferramentas Android (`adb`/`bundletool`) para converter ou instalar o bundle. O `application_id` atual é `br.edu.bonecadigital`; altere-o antes de publicar se o grupo tiver um identificador próprio. `android_version_code` começa em `1` e deve aumentar em cada versão publicada. O teste desktop é reproduzível com os comandos acima; a build Android continua dependendo das wheels correspondentes e do SDK/NDK.
+A configuração do projeto não equivale a um APK/AAB validado. A geração e o teste em aparelho dependem de wheels, SDK/NDK e ferramentas Android compatíveis. O identificador atual é `br.edu.bonecadigital`; altere-o antes de publicar se o grupo tiver outro identificador.
 
-## Observações para revisão do grupo
+## Limitações e próximos testes
 
-- Testar em aparelhos Android reais com proporções de tela diferentes, orientação retrato e áreas reservadas pelo sistema.
-- Conferir tamanho e legibilidade dos textos e botões com crianças e profissionais apropriados; os elementos foram feitos grandes para toque, mas ainda precisam de avaliação.
-- Ajustar as esferas de colisão de cada região ao personagem, pois são aproximações em coordenadas fixas e não acompanham os ossos durante animações.
-- Confirmar licenças e permissão de uso do modelo GLB antes de distribuir o aplicativo.
-- O código e a configuração Android foram preparados para teste; a geração do `.aab` e o teste em dispositivo dependem do SDK/NDK Android e de aparelho compatível.
+- Os alvos corporais acompanham ossos do GLB com cápsulas e esferas aproximadas; a precisão ainda precisa ser confirmada em aparelhos reais.
+- A adaptação de layout precisa ser verificada em aparelhos Android reais, incluindo orientação retrato/paisagem, proporções extremas e áreas de toque.
+- TalkBack/VoiceOver, foco de teclado e outras tecnologias assistivas nativas não foram integrados nem avaliados.
+- Validar o vocabulário, os pictogramas e o fluxo com crianças, responsáveis, profissionais de enfermagem, acessibilidade e ética antes de qualquer uso real.
+- Planejar privacidade e segurança antes de armazenar ou compartilhar respostas.
 
 ## Referências técnicas
 
