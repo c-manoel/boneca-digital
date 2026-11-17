@@ -25,3 +25,4 @@ echo Nao foi possivel preparar ou iniciar o projeto.
 echo Confira se o Python esta instalado e disponivel pelo comando py.
 pause
 exit /b 1
+
