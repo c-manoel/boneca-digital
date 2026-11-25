@@ -1,4 +1,5 @@
 """Protótipo local da Boneca Digital, construído inteiramente com Panda3D."""
+from math import radians, tan
 from pathlib import Path
 
 from direct.actor.Actor import Actor
@@ -9,6 +10,7 @@ from direct.task import Task
 from panda3d.core import (
     AmbientLight,
     BitMask32,
+    CardMaker,
     CollisionHandlerQueue,
     CollisionNode,
     CollisionRay,
@@ -27,6 +29,9 @@ ROOT = Path(__file__).resolve().parents[1]
 MODEL_PATH = ROOT / "assets" / "boneca_3d" / "grab3d-lowpoly-character.glb"
 UI_ASSETS = ROOT / "assets" / "ui"
 SOUND_PATH = ROOT / "assets" / "audio" / "soft_chime.wav"
+SCENE_ART = ROOT / "assets" / "fundo_e_sombra_boneca"
+BACKGROUND_PATH = SCENE_ART / "fundo_tela_infantil_retrato_928x1648.png"
+SHADOW_PATH = SCENE_ART / "sombra_boneca_512x160.png"
 
 # Cores escuras o bastante para texto branco; a seleção também usa um X,
 # para que a cor nunca seja a única maneira de perceber o estado.
@@ -52,7 +57,7 @@ class BonecaApp(ShowBase):
         super().__init__()
         self.enableSoundEffects(False)
 
-        self.setBackgroundColor(247 / 255, 244 / 255, 237 / 255, 1)
+        self.setBackgroundColor(94 / 255, 204 / 255, 246 / 255, 1)
         self.disableMouse()
         self.widgets = []
         self.current_screen = "home"
@@ -89,6 +94,7 @@ class BonecaApp(ShowBase):
         self._fit_character()
         self._add_lighting()
         self._setup_camera()
+        self._setup_scene_art()
         self._start_idle_animation()
         self._setup_body_picker()
 
@@ -128,6 +134,36 @@ class BonecaApp(ShowBase):
     def _setup_camera(self):
         self.camera.setPos(0, -4.2, 1.05)
         self.camera.lookAt(0, 0, 0.9)
+
+    def _setup_scene_art(self):
+        """Coloca o fundo atrás da cena e a sombra sob os pés da boneca."""
+        if BACKGROUND_PATH.is_file():
+            distance = 8.0
+            fov = self.camLens.getFov()
+            half_width = distance * tan(radians(fov.x / 2))
+            half_height = distance * tan(radians(fov.y / 2))
+            background = CardMaker("fundo-infantil")
+            background.setFrame(-half_width, half_width, -half_height, half_height)
+            self.background_art = self.camera.attachNewNode(background.generate())
+            self.background_art.setPos(0, distance, 0)
+            self.background_art.setTexture(self.loader.loadTexture(str(BACKGROUND_PATH)), 1)
+            self.background_art.setLightOff()
+            self.background_art.setDepthWrite(False)
+        else:
+            self.background_art = None
+
+        if SHADOW_PATH.is_file():
+            shadow = CardMaker("sombra-boneca")
+            shadow.setFrame(-0.82, 0.82, -0.26, 0.26)
+            self.shadow_art = self.render.attachNewNode(shadow.generate())
+            self.shadow_art.setP(-90)
+            self.shadow_art.setPos(0, 0, 0.006)
+            self.shadow_art.setTexture(self.loader.loadTexture(str(SHADOW_PATH)), 1)
+            self.shadow_art.setTransparency(TransparencyAttrib.MAlpha)
+            self.shadow_art.setLightOff()
+            self.shadow_art.setDepthWrite(False)
+        else:
+            self.shadow_art = None
 
     def _layout_aspect(self):
         """Proporção mínima segura para posicionar UI também em telas retrato."""
@@ -629,29 +665,27 @@ class BonecaApp(ShowBase):
         elif name == "intensity":
             self._step(3, "INTENSIDADE")
             self._label("QUANTO?", 0.84, self._title_scale(), TEAL)
+            intensity_x = min(
+                0.70,
+                self._layout_aspect() - 1.08 * self._choice_card_scale() - 0.02,
+            )
+            intensity_x = max(0.18, intensity_x)
+            left_x = -intensity_x
+            right_x = intensity_x
             choices = [
-                ("Leve", "LEVE", "intensity_low", GREEN, 0.39),
-                ("Moderada", "MÉDIO", "intensity_medium", GOLD, -0.03),
-                ("Forte", "FORTE", "intensity_high", RED, -0.45),
+                ("Leve", "LEVE", "intensity_low", GREEN, left_x, 0.39),
+                ("Moderada", "MÉDIO", "intensity_medium", GOLD, right_x, -0.03),
+                ("Forte", "FORTE", "intensity_high", RED, left_x, -0.45),
             ]
             self.intensity_buttons = {}
-            self.intensity_short_names = {value: short for value, short, _, _, _ in choices}
-            intensity_card_scale = min(0.095, max(0.075, self._layout_aspect() * 0.16))
-            intensity_card_half_width = 1.08 * intensity_card_scale
-            intensity_x = min(
-                0.43,
-                self._layout_aspect() - intensity_card_half_width - 0.045,
-            )
-            intensity_x = max(0.20, intensity_x)    
-            for value, short, icon, color, y in choices:
+            self.intensity_short_names = {value: short for value, short, _, _, _, _ in choices}
+            for value, short, icon, color, x, y in choices:
                 action = lambda level=value: self._select_intensity(level)
                 self.option_actions.append(action)
-                button = self._icon_card(
-                    short, icon, intensity_x, y, action,
+                self.intensity_buttons[value] = self._icon_card(
+                    short, icon, x, y, action,
                     color=color, selected=value == self.selected_intensity
                 )
-                button.setScale(intensity_card_scale)
-                self.intensity_buttons[value] = button
             self._nav_button("VOLTAR", "nav_back", -0.40, -0.91, lambda: self.show_screen("discomfort"), PURPLE)
             self._nav_button("SEGUIR", "nav_next", 0.40, -0.91, self._continue_intensity, TEAL)
 

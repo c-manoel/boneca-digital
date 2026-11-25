@@ -16,3 +16,10 @@ Os arquivos são PNGs RGBA de 128 × 128 px, usados em cartões de escolha, nave
 
 Para trocar um desenho, mantenha o nome do arquivo e a transparência do PNG. Se criar uma opção nova, atualize também os mapeamentos de tela e seleção em `core/app.py`. Evite depender apenas de uma cor para comunicar estado; mantenha formas distintas e contraste forte.
 
+
+
+## Atualização visual infantil
+Os pictogramas foram atualizados com cores mais vivas e aparência amigável.
+Os nomes originais foram preservados para permitir substituir os arquivos de assets.
+Todos os PNGs mantêm transparência RGBA. Os arquivos que eram 128 x 128 continuam
+128 x 128; `help_call_adult.png` permanece 256 x 256.

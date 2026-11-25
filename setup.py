@@ -34,6 +34,7 @@ setup(
             ],
             "include_patterns": [
                 "assets/boneca_3d/*.glb",
+                "assets/fundo_e_sombra_boneca/*.png",
                 "assets/ui/*.png",
                 "assets/audio/*.wav",
             ],
